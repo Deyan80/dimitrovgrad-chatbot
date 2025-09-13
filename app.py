@@ -1,23 +1,22 @@
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, render_template, request, jsonify
+import os
 
-# Увери се, че името на променливата е точно `app` — gunicorn търси app:app
-app = Flask(__name__, static_folder='static', static_url_path='')
+app = Flask(__name__, template_folder="templates")
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
-    # Ако имаш static/index.html (напр. React build), той ще се сервира автоматично
-    try:
-        return send_from_directory('static', 'index.html')
-    except Exception:
-        return "<h1>Добре дошли в Dimitrovgrad Chatbot!</h1><p>Ботът е активен ✅</p>"
+    return render_template("index.html")
 
-@app.route("/api/health")
-def health():
-    return jsonify(status="ok")
-
-# Примерен API endpoint (замени с логиката на твоя бот)
-@app.route("/api/chat", methods=["POST"])
+@app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json(silent=True) or {}
-    # временно поведение — върни примерен отговор
-    return jsonify({"reply": "Това е тестов отговор. Заменете с реалната логика."})
+    data = request.get_json() or {}
+    query = data.get("query", "").strip()
+    if not query:
+        return jsonify({"answer": "Моля, напишете въпрос."})
+    # тестов отговор
+    return jsonify({"answer": f"Получих въпроса: {query}"})
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
