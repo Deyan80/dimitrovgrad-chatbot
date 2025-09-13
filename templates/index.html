@@ -4,67 +4,111 @@
     <meta charset="UTF-8">
     <title>Димитровград Чатбот</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #fff; padding: 20px; }
-        #chat { border: 1px solid #444; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
-        #userInput { width: 80%; padding: 10px; border: none; border-radius: 5px; }
-        #sendBtn { padding: 10px 15px; border: none; border-radius: 5px; background-color: #0078d4; color: #fff; cursor: pointer; }
-        .message { margin: 5px 0; }
-        .user { color: #00ffea; }
-        .bot { color: #ffa500; }
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+        #chat {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+        .user {
+            background-color: #0078d7;
+            align-self: flex-end;
+        }
+        .bot {
+            background-color: #333333;
+            align-self: flex-start;
+        }
+        #inputForm {
+            display: flex;
+            padding: 10px;
+            background-color: #2a2a2a;
+        }
+        #inputForm input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        #inputForm button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #0078d7;
+            color: white;
+            cursor: pointer;
+        }
+        a {
+            color: #00ffff;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <h1>Димитровград Чатбот</h1>
     <div id="chat"></div>
-    <input type="text" id="userInput" placeholder="Напиши въпрос...">
-    <button id="sendBtn">Изпрати</button>
+    <form id="inputForm">
+        <input type="text" id="userInput" placeholder="Напиши въпрос..." autocomplete="off">
+        <button type="submit">Изпрати</button>
+    </form>
 
     <script>
         const chat = document.getElementById('chat');
+        const form = document.getElementById('inputForm');
         const input = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
 
-        function addMessage(text, sender) {
+        function addMessage(text, sender, isHTML=false) {
             const div = document.createElement('div');
             div.classList.add('message', sender);
-            div.textContent = text;
+            if (isHTML) {
+                div.innerHTML = text;
+            } else {
+                div.textContent = text;
+            }
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
         }
 
-        async function sendQuery() {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
             const query = input.value.trim();
             if (!query) return;
-
             addMessage(query, 'user');
             input.value = '';
 
             try {
                 const response = await fetch('/search', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query})
                 });
 
                 const data = await response.json();
 
                 if (data.error) {
                     addMessage(data.error, 'bot');
-                } else if (data.length === 0) {
-                    addMessage('Няма намерени резултати.', 'bot');
                 } else {
                     data.forEach(item => {
-                        addMessage(`${item.title} — ${item.link}`, 'bot');
+                        const linkHTML = `<a href="${item.link}" target="_blank">${item.title}</a>`;
+                        addMessage(linkHTML, 'bot', true);
                     });
                 }
             } catch (err) {
-                addMessage('Грешка при заявката.', 'bot');
+                addMessage("Грешка при връзката с сървъра.", 'bot');
             }
-        }
-
-        sendBtn.addEventListener('click', sendQuery);
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendQuery();
         });
     </script>
 </body>
