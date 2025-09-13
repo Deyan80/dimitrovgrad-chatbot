@@ -2,58 +2,71 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чатбот за Община Димитровград</title>
+    <title>Димитровград Чатбот</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
-        #chat-container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); height: 500px; display: flex; flex-direction: column; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; border-bottom: 1px solid #ddd; }
-        .message { margin-bottom: 10px; padding: 10px; border-radius: 5px; }
-        .user { background: #007bff; color: white; text-align: right; }
-        .bot { background: #e9ecef; color: #333; }
-        #input-container { display: flex; padding: 10px; }
-        #user-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        #send-btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; margin-left: 10px; cursor: pointer; }
-        #send-btn:hover { background: #0056b3; }
+        body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #fff; padding: 20px; }
+        #chat { border: 1px solid #444; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
+        #userInput { width: 80%; padding: 10px; border: none; border-radius: 5px; }
+        #sendBtn { padding: 10px 15px; border: none; border-radius: 5px; background-color: #0078d4; color: #fff; cursor: pointer; }
+        .message { margin: 5px 0; }
+        .user { color: #00ffea; }
+        .bot { color: #ffa500; }
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <div id="messages">
-            <div class="message bot">Здравей! Аз съм чатботът на Община Димитровград. Попитай ме нещо за услугите, новини или търси в официалните сайтове.</div>
-        </div>
-        <div id="input-container">
-            <input type="text" id="user-input" placeholder="Въведи твоя въпрос..." onkeypress="if(event.key==='Enter') sendMessage();">
-            <button id="send-btn" onclick="sendMessage()">Изпрати</button>
-        </div>
-    </div>
+    <h1>Димитровград Чатбот</h1>
+    <div id="chat"></div>
+    <input type="text" id="userInput" placeholder="Напиши въпрос...">
+    <button id="sendBtn">Изпрати</button>
+
     <script>
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const message = input.value.trim();
-            if (!message) return;
-            addMessage(message, 'user');
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            div.classList.add('message', sender);
+            div.textContent = text;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        async function sendQuery() {
+            const query = input.value.trim();
+            if (!query) return;
+
+            addMessage(query, 'user');
             input.value = '';
+
             try {
                 const response = await fetch('/search', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: message })
+                    body: JSON.stringify({ query })
                 });
+
                 const data = await response.json();
-                addMessage(data.results || 'Няма резултати. Опитай с друг въпрос.', 'bot');
-            } catch (error) {
-                addMessage('Грешка при търсенето. Опитай пак.', 'bot');
+
+                if (data.error) {
+                    addMessage(data.error, 'bot');
+                } else if (data.length === 0) {
+                    addMessage('Няма намерени резултати.', 'bot');
+                } else {
+                    data.forEach(item => {
+                        addMessage(`${item.title} — ${item.link}`, 'bot');
+                    });
+                }
+            } catch (err) {
+                addMessage('Грешка при заявката.', 'bot');
             }
         }
-        function addMessage(text, sender) {
-            const messages = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = `message ${sender}`;
-            div.textContent = text;
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
-        }
+
+        sendBtn.addEventListener('click', sendQuery);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendQuery();
+        });
     </script>
 </body>
 </html>
+
