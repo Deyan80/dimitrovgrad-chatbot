@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import os
 import requests
 
@@ -15,7 +15,8 @@ GOOGLE_SEARCH_URL = "https://www.googleapis.com/customsearch/v1"
 
 @app.route("/")
 def index():
-    return "Чатботът е на линия!"
+    # Зарежда index.html от папката templates
+    return render_template("index.html")
 
 @app.route("/search", methods=["POST"])
 def search():
@@ -24,11 +25,9 @@ def search():
     if not query:
         return jsonify({"error": "Липсва заявка"}), 400
 
-    # Проверка дали ключовете са налични
     if not API_KEY or not CX:
         return jsonify({"error": "Грешка: Добави API_KEY и CX в Render Environment Variables"}), 500
 
-    # Извършваме заявка към Google Custom Search
     params = {
         "key": API_KEY,
         "cx": CX,
@@ -37,7 +36,6 @@ def search():
     response = requests.get(GOOGLE_SEARCH_URL, params=params)
     results = response.json()
 
-    # Връщаме първите 3 резултата
     items = results.get("items", [])
     top_results = [{"title": item["title"], "link": item["link"]} for item in items[:3]]
 
