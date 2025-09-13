@@ -56,6 +56,11 @@
             color: #00ffff;
             text-decoration: underline;
         }
+        .snippet {
+            font-size: 0.9em;
+            color: #cccccc;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -102,15 +107,21 @@
                     addMessage(data.error, 'bot');
                 } else {
                     data.forEach(item => {
-                        const linkHTML = `<a href="${item.link}" target="_blank">${item.title}</a>`;
-                        addMessage(linkHTML, 'bot', true);
+                        const resultHTML = `
+                            <div>
+                                <a href="${item.link}" target="_blank">${item.title}</a>
+                                <div class="snippet">${item.snippet || ""}</div>
+                            </div>
+                        `;
+                        addMessage(resultHTML, 'bot', true);
                     });
                 }
             } catch (err) {
-                addMessage("Грешка при връзката с сървъра.", 'bot');
+                addMessage("Грешка при връзката със сървъра.", 'bot');
             }
         });
     </script>
 </body>
 </html>
+
 
