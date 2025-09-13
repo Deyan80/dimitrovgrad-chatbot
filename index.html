@@ -4,19 +4,25 @@
   <meta charset="UTF-8">
   <title>Чатбот – Димитровград</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; }
-    #chatbox { width: 350px; height: 500px; border: 1px solid #ccc; 
-               border-radius: 10px; background: #fff; 
-               display: flex; flex-direction: column; position: fixed;
-               bottom: 20px; right: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
+    body { font-family: Arial, sans-serif; background: #222; color: #fff; margin:0; padding:0; }
+    #chatbox { 
+      width: 350px; height: 500px; 
+      border: 2px solid #007bff; 
+      border-radius: 10px; 
+      background: #fff; 
+      display: flex; flex-direction: column; 
+      position: fixed; bottom: 20px; right: 20px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 9999;
+    }
     #messages { flex: 1; overflow-y: auto; padding: 10px; }
-    .msg { margin: 8px 0; padding: 8px 12px; border-radius: 8px; }
-    .user { background: #d1e7ff; align-self: flex-end; }
-    .bot { background: #eee; align-self: flex-start; }
+    .msg { margin: 8px 0; padding: 8px 12px; border-radius: 8px; max-width: 80%; word-wrap: break-word; }
+    .user { background: #007bff; color: white; align-self: flex-end; }
+    .bot { background: #f1f1f1; color: #000; align-self: flex-start; }
     #inputArea { display: flex; border-top: 1px solid #ccc; }
-    #input { flex: 1; padding: 10px; border: none; border-radius: 0 0 0 10px; }
+    #input { flex: 1; padding: 10px; border: none; border-radius: 0 0 0 10px; outline: none; }
     #send { background: #007bff; color: white; border: none; padding: 10px 20px;
-            border-radius: 0 0 10px 0; cursor: pointer; }
+            border-radius: 0 0 10px 0; cursor: pointer; font-weight: bold; }
     #send:hover { background: #0056b3; }
   </style>
 </head>
@@ -56,12 +62,16 @@
         body: JSON.stringify({ query: text })
       });
       const data = await res.json();
+
       if (Array.isArray(data) && data.length > 0) {
         let reply = "<b>Ето какво намерих:</b><br>";
         data.forEach(r => {
           reply += `🔗 <a href="${r.path}" target="_blank">${r.title}</a><br>`;
         });
         addMessage(reply, "bot");
+      } else if (data.answer) {
+        // ако бекендът връща {answer: "..."}
+        addMessage(data.answer, "bot");
       } else {
         addMessage("❌ Няма намерени резултати.", "bot");
       }
@@ -76,3 +86,4 @@
 
 </body>
 </html>
+
