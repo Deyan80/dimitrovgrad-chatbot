@@ -1,58 +1,48 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
+import os
 import requests
-import os  # За environment variables (за ключовете)
 
 app = Flask(__name__)
 
-# Ключове за Google Custom Search (замени с твоите или използвай Environment Variables)
-API_KEY = os.environ.get('API_KEY', 'your_google_api_key_here')  # Добави в Render Environment
-CX = os.environ.get('CX', 'your_cse_id_here')  # Добави в Render Environment
+# Взимаме API_KEY и CX от променливите на средата
+API_KEY = os.getenv("API_KEY")
+CX = os.getenv("CX")
 
-@app.route('/')
+if not API_KEY or not CX:
+    print("Грешка: Добави API_KEY и CX в Render Environment Variables")
+
+GOOGLE_SEARCH_URL = "https://www.googleapis.com/customsearch/v1"
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return "Чатботът е на линия!"
 
-@app.route('/search', methods=['POST'])
+@app.route("/search", methods=["POST"])
 def search():
-    data = request.json
-    query = data.get('query', '').strip()
+    data = request.get_json()
+    query = data.get("query")
     if not query:
-        return jsonify({'results': 'Моля, въведи въпрос.'})
+        return jsonify({"error": "Липсва заявка"}), 400
 
-    # Проверка за ключове
-    if API_KEY == 'your_google_api_key_here' or CX == 'your_cse_id_here':
-        return jsonify({'results': 'Грешка: Добави API_KEY и CX в Render Environment Variables.'})
+    # Проверка дали ключовете са налични
+    if not API_KEY or not CX:
+        return jsonify({"error": "Грешка: Добави API_KEY и CX в Render Environment Variables"}), 500
 
-    try:
-        # URL за Google API
-        url = f"https://www.googleapis.com/customsearch/v1?key={API_KEY}&cx={CX}&q={query}&num=5"
-        response = requests.get(url)
-        response.raise_for_status()
+    # Извършваме заявка към Google Custom Search
+    params = {
+        "key": API_KEY,
+        "cx": CX,
+        "q": query
+    }
+    response = requests.get(GOOGLE_SEARCH_URL, params=params)
+    results = response.json()
 
-        results = response.json().get('items', [])
-        if not results:
-            return jsonify({'results': 'Няма намерени резултати. Опитай с по-конкретен въпрос за Община Димитровград.'})
+    # Връщаме първите 3 резултата
+    items = results.get("items", [])
+    top_results = [{"title": item["title"], "link": item["link"]} for item in items[:3]]
 
-        # Форматирай резултатите за чат
-        formatted = []
-        for item in results:
-            title = item.get('title', 'Без заглавие')
-            link = item.get('link', '#')
-            snippet = item.get('snippet', 'Без описание')[:200] + '...'
-            formatted.append(f"**{title}**\n{snippet}\n[Виж повече: {link}]")
-        full_results = '\n\n---\n\n'.join(formatted)
+    return jsonify(top_results)
 
-        return jsonify({'results': full_results})
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
 
-    except requests.exceptions.HTTPError as e:
-        error_msg = str(e)
-        if 'invalid API key' in error_msg.lower():
-            return jsonify({'results': 'Грешка: Невалиден API ключ. Провери ключовете в Render.'})
-        elif 'quotaExceeded' in error_msg.lower():
-            return jsonify({'results': 'Грешка: Превишен лимит на запитванията за API. Опитай по-късно.'})
-        return jsonify({'results': f'HTTP грешка: {error_msg}'})
-    except Exception as e:
-        return jsonify({'results': f'Грешка при търсенето: {str(e)}. Опитай пак.'})
-
-if __name__ == '__main__':
-    app.run(debug=True)
