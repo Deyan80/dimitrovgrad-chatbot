@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Димитровград Чатбот</title>
     <style>
+        /* Оригинален CSS + responsive подобрения */
         body {
             background-color: #1e1e1e;
             color: #ffffff;
@@ -15,7 +16,7 @@
         }
         #header {
             padding: 10px;
-            background:#2a2a2a;
+            background: #2a2a2a;
             display: flex;
             align-items: center;
         }
@@ -100,10 +101,27 @@
             font-size: 0.9em;
             color: #cccccc;
             margin-top: 5px;
+            white-space: pre-wrap;  /* За по-добро форматиране на AI отговори */
         }
         @keyframes fadeIn {
             from {opacity: 0;}
             to {opacity: 1;}
+        }
+        /* Responsive: За мобилни */
+        @media (max-width: 600px) {
+            #faqButtons {
+                flex-direction: column;
+            }
+            #inputFormRow {
+                flex-direction: column;
+            }
+            #inputForm button {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+            .message {
+                max-width: 90%;
+            }
         }
     </style>
 </head>
@@ -142,12 +160,16 @@
             if (isHTML) div.innerHTML = text;
             else div.textContent = text;
             chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
+            chat.scrollTop = chat.scrollHeight;  // Автоскрол
         }
+
+        // Ново: Добре дошло съобщение
+        addMessage('Здравей! Задай въпрос за Община Димитровград или използвай бутоните по-долу.', 'bot');
 
         async function sendQuery(query) {
             addMessage(query, 'user');
             typing.style.display = 'block';
+            form.querySelector('button').disabled = true;  // Disable бутона по време на обработка
             try {
                 const response = await fetch('/search', {
                     method: 'POST',
@@ -175,6 +197,8 @@
             } catch (err) {
                 typing.style.display = 'none';
                 addMessage("Грешка при връзката със сървъра.", 'bot');
+            } finally {
+                form.querySelector('button').disabled = false;  // Enable бутона
             }
         }
 
@@ -195,5 +219,4 @@
     </script>
 </body>
 </html>
-
 
