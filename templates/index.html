@@ -13,6 +13,16 @@
             height: 100vh;
             margin: 0;
         }
+        #header {
+            padding: 10px;
+            background:#2a2a2a;
+            display: flex;
+            align-items: center;
+        }
+        #header img {
+            height: 40px;
+            margin-right: 10px;
+        }
         #chat {
             flex: 1;
             padding: 20px;
@@ -35,10 +45,37 @@
             background-color: #333333;
             align-self: flex-start;
         }
+        #typing {
+            color: #aaaaaa;
+            font-size: 0.9em;
+            padding: 5px 15px;
+            display: none;
+        }
         #inputForm {
             display: flex;
+            flex-direction: column;
             padding: 10px;
             background-color: #2a2a2a;
+        }
+        #faqButtons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        #faqButtons button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: white;
+            cursor: pointer;
+        }
+        #faqButtons button:hover {
+            background-color: #666;
+        }
+        #inputFormRow {
+            display: flex;
         }
         #inputForm input {
             flex: 1;
@@ -64,12 +101,6 @@
             color: #cccccc;
             margin-top: 5px;
         }
-        #typing {
-            color: #aaaaaa;
-            font-size: 0.9em;
-            padding: 5px 15px;
-            display: none;
-        }
         @keyframes fadeIn {
             from {opacity: 0;}
             to {opacity: 1;}
@@ -77,16 +108,25 @@
     </style>
 </head>
 <body>
-    <div style="padding:10px; background:#2a2a2a;">
-        <img src="https://www.dimitrovgrad.bg/images/common/logo.png" height="40" alt="Лого">
+    <div id="header">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Coat_of_arms_of_Dimitrovgrad.png" alt="Лого">
+        <span>Димитровград Чатбот</span>
     </div>
 
     <div id="chat"></div>
     <div id="typing">Ботът пише...</div>
 
     <form id="inputForm">
-        <input type="text" id="userInput" placeholder="Напиши въпрос..." autocomplete="off">
-        <button type="submit">Изпрати</button>
+        <div id="faqButtons">
+            <button type="button">Кой е кметът на Димитровград?</button>
+            <button type="button">Кой е председател на Общинския съвет?</button>
+            <button type="button">Работно време на общината</button>
+            <button type="button">Телефон за връзка</button>
+        </div>
+        <div id="inputFormRow">
+            <input type="text" id="userInput" placeholder="Напиши въпрос..." autocomplete="off">
+            <button type="submit">Изпрати</button>
+        </div>
     </form>
 
     <script>
@@ -94,6 +134,7 @@
         const typing = document.getElementById('typing');
         const form = document.getElementById('inputForm');
         const input = document.getElementById('userInput');
+        const faqButtons = document.querySelectorAll('#faqButtons button');
 
         function addMessage(text, sender, isHTML=false) {
             const div = document.createElement('div');
@@ -104,27 +145,22 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const query = input.value.trim();
-            if (!query) return;
+        async function sendQuery(query) {
             addMessage(query, 'user');
-            input.value = '';
-
             typing.style.display = 'block';
-
             try {
                 const response = await fetch('/search', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({query})
                 });
-
                 const data = await response.json();
                 typing.style.display = 'none';
 
                 if (data.error) {
                     addMessage(data.error, 'bot');
+                } else if (data.length === 0) {
+                    addMessage("Няма намерена информация.", 'bot');
                 } else {
                     data.forEach(item => {
                         const resultHTML = `
@@ -140,10 +176,24 @@
                 typing.style.display = 'none';
                 addMessage("Грешка при връзката със сървъра.", 'bot');
             }
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = input.value.trim();
+            if (!query) return;
+            input.value = '';
+            sendQuery(query);
+        });
+
+        faqButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const q = btn.textContent;
+                sendQuery(q);
+            });
         });
     </script>
 </body>
 </html>
-
 
 
