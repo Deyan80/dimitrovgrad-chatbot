@@ -1,15 +1,17 @@
+```python
 import os
 import requests
 from flask import Flask, render_template, request, jsonify
-import google.generativeai as genai  # Ново: за Gemini AI
+import google.generativeai as genai
+from datetime import datetime  # Ново: за текущата дата
 
 app = Flask(__name__)
 
 API_KEY = os.getenv("API_KEY")  # Google Custom Search API
 CX = os.getenv("CX")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # Ново: Gemini API ключ
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # Gemini API ключ
 
-# Актуализиран FAQ речник с повече ключови и актуална info (от 2025)
+# Актуализиран FAQ речник
 FAQ = {
     "работно време": "Работното време на Община Димитровград е от понеделник до петък, 8:30 – 17:00 ч. без прекъсване. Повече: https://www.dimitrovgrad.bg/bg/rabotno-vreme",
     "кмет": "Кмет на Община Димитровград е Иво Димов. Повече: https://www.dimitrovgrad.bg/bg/kmet",
@@ -21,7 +23,7 @@ FAQ = {
 def search_google(query):
     base_url = "https://www.googleapis.com/customsearch/v1"
     params = {
-        "q": query + " site:dimitrovgrad.bg",  # Ограничи до официалния сайт за по-точни резултати
+        "q": query + " site:dimitrovgrad.bg",
         "key": API_KEY,
         "cx": CX,
         "sort": "date"
@@ -48,16 +50,18 @@ def generate_ai_response(query, search_results):
         return "Липсва GEMINI_API_KEY за AI."
 
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')  # Безплатен модел
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
-    # Събери snippets от търсенията
+    # Добавяме текущата дата в prompt-а
+    current_date = datetime.now().strftime("%d %B %Y г., %A")
     snippets = "\n".join([item.get("snippet", "") for item in search_results])
+    prompt = f"Днес е {current_date}. Отговори на запитването '{query}' на български език, базирано на тези данни: {snippets}. Бъди кратък, информативен и добави линкове, ако са релевантни."
 
-    # Prompt за Gemini (на български за по-добри отговори)
-    prompt = f"Отговори на запитването '{query}' на български език, базирано на тези данни: {snippets}. Бъди кратък, информативен и добави линкове ако са релевантни."
-
-    response = model.generate_content(prompt)
-    return response.text
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Грешка при AI обработка: {str(e)}"
 
 @app.route("/")
 def index():
@@ -68,23 +72,26 @@ def search():
     data = request.json
     query = data.get("query", "").lower()
 
-    # 1) Проверка за FAQ с по-гъвкава логика (множество ключови)
+    # Нова проверка за дата
+    if any(word in query for word in ["ден", "днес", "дата"]):
+        current_date = datetime.now().strftime("%d %B %Y г., %A")
+        return jsonify([{"title": "Текуща дата", "link": "#", "snippet": f"Днес е {current_date}."}])
+
+    # Проверка за FAQ
     for key, answer in FAQ.items():
-        if any(word in query for word in key.split()):  # По-добро съвпадение
+        if any(word in query for word in key.split()):
             return jsonify([{"title": "FAQ", "link": "#", "snippet": answer}])
 
-    # 2) Google Custom Search + AI
+    # Google Custom Search + AI
     if not API_KEY or not CX:
         return jsonify({"error": "Липсва API_KEY или CX"}), 500
 
     try:
         results = search_google(query)
         if results:
-            # Използвай AI да генерира coherent отговор
             ai_answer = generate_ai_response(query, results)
             return jsonify([{"title": "AI Отговор", "link": "#", "snippet": ai_answer}])
         else:
-            # Ако няма резултати, директно AI (Gemini знае обща info)
             ai_answer = generate_ai_response(query, [])
             return jsonify([{"title": "AI Отговор", "link": "#", "snippet": ai_answer}])
     except Exception as e:
@@ -92,3 +99,4 @@ def search():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+```
