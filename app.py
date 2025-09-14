@@ -1,9 +1,8 @@
-```python
 import os
 import requests
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
-from datetime import datetime  # Ново: за текущата дата
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -72,7 +71,7 @@ def search():
     data = request.json
     query = data.get("query", "").lower()
 
-    # Нова проверка за дата
+    # Проверка за дата
     if any(word in query for word in ["ден", "днес", "дата"]):
         current_date = datetime.now().strftime("%d %B %Y г., %A")
         return jsonify([{"title": "Текуща дата", "link": "#", "snippet": f"Днес е {current_date}."}])
@@ -99,4 +98,3 @@ def search():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
-```
