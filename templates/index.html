@@ -17,12 +17,15 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .message {
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 10px;
             max-width: 70%;
+            animation: fadeIn 0.3s ease;
         }
         .user {
             background-color: #0078d7;
@@ -61,10 +64,26 @@
             color: #cccccc;
             margin-top: 5px;
         }
+        #typing {
+            color: #aaaaaa;
+            font-size: 0.9em;
+            padding: 5px 15px;
+            display: none;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
     </style>
 </head>
 <body>
+    <div style="padding:10px; background:#2a2a2a;">
+        <img src="https://www.dimitrovgrad.bg/images/common/logo.png" height="40" alt="Лого">
+    </div>
+
     <div id="chat"></div>
+    <div id="typing">Ботът пише...</div>
+
     <form id="inputForm">
         <input type="text" id="userInput" placeholder="Напиши въпрос..." autocomplete="off">
         <button type="submit">Изпрати</button>
@@ -72,17 +91,15 @@
 
     <script>
         const chat = document.getElementById('chat');
+        const typing = document.getElementById('typing');
         const form = document.getElementById('inputForm');
         const input = document.getElementById('userInput');
 
         function addMessage(text, sender, isHTML=false) {
             const div = document.createElement('div');
             div.classList.add('message', sender);
-            if (isHTML) {
-                div.innerHTML = text;
-            } else {
-                div.textContent = text;
-            }
+            if (isHTML) div.innerHTML = text;
+            else div.textContent = text;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
         }
@@ -94,6 +111,8 @@
             addMessage(query, 'user');
             input.value = '';
 
+            typing.style.display = 'block';
+
             try {
                 const response = await fetch('/search', {
                     method: 'POST',
@@ -102,6 +121,7 @@
                 });
 
                 const data = await response.json();
+                typing.style.display = 'none';
 
                 if (data.error) {
                     addMessage(data.error, 'bot');
@@ -117,11 +137,13 @@
                     });
                 }
             } catch (err) {
+                typing.style.display = 'none';
                 addMessage("Грешка при връзката със сървъра.", 'bot');
             }
         });
     </script>
 </body>
 </html>
+
 
 
