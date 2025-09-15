@@ -2,145 +2,117 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>Димитровград Чатбот</title>
+    <title>Чатбот - Община Димитровград</title>
     <style>
-        /* Оригинален CSS + responsive подобрения */
         body {
-            background-color: #1e1e1e;
-            color: #ffffff;
             font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        #chatbox {
+            width: 100%;
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            margin: 0;
-        }
-        #header {
-            padding: 10px;
-            background: #2a2a2a;
-            display: flex;
-            align-items: center;
+            height: 80vh;
         }
         #chat {
             flex: 1;
-            padding: 20px;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
         }
         .message {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 10px;
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 15px;
             max-width: 70%;
-            animation: fadeIn 0.3s ease;
+            line-height: 1.4em;
         }
-        .user {
-            background-color: #0078d7;
+        .message.user {
+            background: #dcf8c6;
             align-self: flex-end;
         }
-        .bot {
-            background-color: #333333;
+        .message.bot {
+            background: #f1f0f0;
             align-self: flex-start;
-        }
-        #typing {
-            color: #aaaaaa;
-            font-size: 0.9em;
-            padding: 5px 15px;
-            display: none;
         }
         #inputForm {
             display: flex;
-            flex-direction: column;
-            padding: 10px;
-            background-color: #2a2a2a;
+            border-top: 1px solid #ccc;
+        }
+        #userInput {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 0 0 0 10px;
+            font-size: 16px;
+        }
+        #inputForm button {
+            padding: 15px 20px;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border-radius: 0 0 10px 0;
+            cursor: pointer;
+        }
+        #inputForm button:disabled {
+            background: #888;
+            cursor: not-allowed;
         }
         #faqButtons {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
-            margin-bottom: 10px;
+            padding: 10px;
+            gap: 10px;
+            border-top: 1px solid #eee;
         }
         #faqButtons button {
-            padding: 6px 12px;
+            flex: 1;
+            min-width: 180px;
+            padding: 10px;
             border: none;
-            border-radius: 5px;
-            background-color: #444;
+            background: #1976D2;
             color: white;
+            border-radius: 8px;
             cursor: pointer;
         }
         #faqButtons button:hover {
-            background-color: #666;
+            background: #125a9c;
         }
-        #inputFormRow {
-            display: flex;
-        }
-        #inputForm input {
-            flex: 1;
+        #typing {
+            font-style: italic;
             padding: 10px;
-            border-radius: 5px;
-            border: none;
-        }
-        #inputForm button {
-            margin-left: 10px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #0078d7;
-            color: white;
-            cursor: pointer;
+            display: none;
         }
         a {
-            color: #00ffff;
+            color: #1976D2;
             text-decoration: underline;
-        }
-        .snippet {
-            font-size: 0.9em;
-            color: #cccccc;
-            margin-top: 5px;
-            white-space: pre-wrap; /* За по-добро форматиране на AI отговори */
-        }
-        @keyframes fadeIn {
-            from {opacity: 0;}
-            to {opacity: 1;}
-        }
-        /* Responsive: За мобилни */
-        @media (max-width: 600px) {
-            #faqButtons {
-                flex-direction: column;
-            }
-            #inputFormRow {
-                flex-direction: column;
-            }
-            #inputForm button {
-                margin-left: 0;
-                margin-top: 10px;
-            }
-            .message {
-                max-width: 90%;
-            }
         }
     </style>
 </head>
 <body>
-    <div id="header">
-        <span>Димитровград Чатбот</span>
-    </div>
-
-    <div id="chat"></div>
-    <div id="typing">Ботът пише...</div>
-
-    <form id="inputForm">
-        <div id="faqButtons">
-            <button type="button">Кой е кметът на Димитровград?</button>
-            <button type="button">Кой е председател на Общинския съвет?</button>
-            <button type="button">Работно време на общината</button>
-            <button type="button">Телефон за връзка</button>
-        </div>
-        <div id="inputFormRow">
-            <input type="text" id="userInput" placeholder="Напиши въпрос..." autocomplete="off">
+    <div id="chatbox">
+        <div id="chat"></div>
+        <div id="typing">Ботът пише...</div>
+        <form id="inputForm">
+            <input type="text" id="userInput" placeholder="Въведете въпрос..." autocomplete="off" required>
             <button type="submit">Изпрати</button>
+        </form>
+        <div id="faqButtons">
+            <button>Кой е кметът на Димитровград?</button>
+            <button>Кой е председател на Общинския съвет?</button>
+            <button>Работно време на общината</button>
+            <button>Телефон за връзка</button>
+            <button>Културна програма</button>
+            <button>Сесия на Общинския съвет</button>
         </div>
-    </form>
+    </div>
 
     <script>
         const chat = document.getElementById('chat');
@@ -149,66 +121,62 @@
         const input = document.getElementById('userInput');
         const faqButtons = document.querySelectorAll('#faqButtons button');
 
+        function linkify(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
+        }
+
         function addMessage(text, sender, isHTML=false) {
             const div = document.createElement('div');
             div.classList.add('message', sender);
-            if (isHTML) div.innerHTML = text;
-            else div.textContent = text;
+            div.innerHTML = isHTML ? text : linkify(text);
             chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight; // Автоскрол
+            chat.scrollTop = chat.scrollHeight;
         }
 
-        // Добре дошло съобщение
-        addMessage('Здравей! Задай въпрос за Община Димитровград или използвай бутоните по-долу.', 'bot');
+        addMessage("👋 Здравей! Аз съм чатботът на Община Димитровград. Попитай ме нещо или използвай бутоните по-долу.", "bot", true);
 
         async function sendQuery(query) {
-            addMessage(query, 'user');
-            typing.style.display = 'block';
-            form.querySelector('button').disabled = true; // Disable бутона по време на обработка
+            addMessage(query, "user");
+            typing.style.display = "block";
+            form.querySelector("button[type=submit]").disabled = true;
+
             try {
-                const response = await fetch('/search', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                const response = await fetch("/search", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({query})
                 });
                 const data = await response.json();
-                typing.style.display = 'none';
+                typing.style.display = "none";
+                form.querySelector("button[type=submit]").disabled = false;
 
                 if (data.error) {
-                    addMessage(data.error, 'bot');
-                } else if (data.length === 0) {
-                    addMessage("Няма намерена информация.", 'bot');
+                    addMessage("⚠️ Възникна грешка: " + data.error, "bot");
                 } else {
                     data.forEach(item => {
-                        const resultHTML = `
-                            <div>
-                                <a href="${item.link}" target="_blank">${item.title}</a>
-                                <div class="snippet">${item.snippet || ""}</div>
-                            </div>
-                        `;
-                        addMessage(resultHTML, 'bot', true);
+                        addMessage(item.snippet, "bot", true);
                     });
                 }
             } catch (err) {
-                typing.style.display = 'none';
-                addMessage("Грешка при връзката със сървъра.", 'bot');
-            } finally {
-                form.querySelector('button').disabled = false; // Enable бутона
+                typing.style.display = "none";
+                form.querySelector("button[type=submit]").disabled = false;
+                addMessage("⚠️ Проблем с връзката: " + err.message, "bot");
             }
         }
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener("submit", e => {
             e.preventDefault();
-            const query = input.value.trim();
-            if (!query) return;
-            input.value = '';
-            sendQuery(query);
+            const text = input.value.trim();
+            if (text) {
+                sendQuery(text);
+                input.value = "";
+            }
         });
 
         faqButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const q = btn.textContent;
-                sendQuery(q);
+            btn.addEventListener("click", () => {
+                sendQuery(btn.textContent);
             });
         });
     </script>
