@@ -2,116 +2,113 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>Чатбот - Община Димитровград</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чатбот – Община Димитровград</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f2f2f2;
+            background: #f4f4f9;
             margin: 0;
             padding: 0;
-        }
-        #chatbox {
-            width: 100%;
-            max-width: 800px;
-            margin: 30px auto;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 80vh;
+            height: 100vh;
         }
         #chat {
             flex: 1;
+            padding: 15px;
             overflow-y: auto;
-            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
         }
         .message {
-            margin: 10px 0;
-            padding: 10px 15px;
-            border-radius: 15px;
-            max-width: 70%;
-            line-height: 1.4em;
-        }
-        .message.user {
-            background: #dcf8c6;
-            align-self: flex-end;
+            margin-bottom: 12px;
+            line-height: 1.5;
         }
         .message.bot {
-            background: #f1f0f0;
-            align-self: flex-start;
+            color: #333;
+        }
+        .message.user {
+            text-align: right;
+            color: #007bff;
         }
         #inputForm {
             display: flex;
-            border-top: 1px solid #ccc;
+            padding: 10px;
+            background: #eee;
         }
         #userInput {
             flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 0 0 0 10px;
-            font-size: 16px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
         }
-        #inputForm button {
-            padding: 15px 20px;
+        button {
+            margin-left: 10px;
+            padding: 10px 15px;
+            background: #007bff;
+            color: #fff;
             border: none;
-            background: #4CAF50;
-            color: white;
-            font-size: 16px;
-            border-radius: 0 0 10px 0;
+            border-radius: 6px;
             cursor: pointer;
         }
-        #inputForm button:disabled {
-            background: #888;
-            cursor: not-allowed;
+        button:hover {
+            background: #0056b3;
+        }
+        #typing {
+            font-style: italic;
+            color: gray;
+            display: none;
+            padding: 0 15px;
         }
         #faqButtons {
             display: flex;
             flex-wrap: wrap;
             padding: 10px;
-            gap: 10px;
-            border-top: 1px solid #eee;
+            background: #fafafa;
+            border-top: 1px solid #ddd;
         }
         #faqButtons button {
-            flex: 1;
-            min-width: 180px;
-            padding: 10px;
-            border: none;
-            background: #1976D2;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
+            margin: 5px;
+            background: #6c757d;
         }
         #faqButtons button:hover {
-            background: #125a9c;
-        }
-        #typing {
-            font-style: italic;
-            padding: 10px;
-            display: none;
+            background: #495057;
         }
         a {
-            color: #1976D2;
+            color: #007bff;
             text-decoration: underline;
+        }
+        .download-btn {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 4px 8px;
+            background: #2563eb;
+            color: #fff !important;
+            border-radius: 4px;
+            font-size: 0.9em;
+            text-decoration: none;
+        }
+        .download-btn:hover {
+            background: #1e40af;
         }
     </style>
 </head>
 <body>
-    <div id="chatbox">
-        <div id="chat"></div>
-        <div id="typing">Ботът пише...</div>
-        <form id="inputForm">
-            <input type="text" id="userInput" placeholder="Въведете въпрос..." autocomplete="off" required>
-            <button type="submit">Изпрати</button>
-        </form>
-        <div id="faqButtons">
-            <button>Кой е кметът на Димитровград?</button>
-            <button>Кой е председател на Общинския съвет?</button>
-            <button>Работно време на общината</button>
-            <button>Телефон за връзка</button>
-            <button>Културна програма</button>
-            <button>Сесия на Общинския съвет</button>
-        </div>
+    <div id="chat"></div>
+    <div id="typing">Пише...</div>
+
+    <form id="inputForm">
+        <input type="text" id="userInput" placeholder="Задай въпрос..." required>
+        <button type="submit">Изпрати</button>
+    </form>
+
+    <div id="faqButtons">
+        <button>Контакти на общината</button>
+        <button>Работно време</button>
+        <button>Бюджет 2025</button>
+        <button>Решения на Общински съвет</button>
+        <button>Видео от заседания</button>
     </div>
 
     <script>
@@ -134,7 +131,8 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        addMessage("👋 Здравей! Аз съм чатботът на Община Димитровград. Попитай ме нещо или използвай бутоните по-долу.", "bot", true);
+        // първоначално съобщение
+        addMessage("👋 Здравей! Аз съм чатботът за Община Димитровград. Попитай ме нещо или използвай бутоните по-долу.", "bot", true);
 
         async function sendQuery(query) {
             addMessage(query, "user");
@@ -182,4 +180,3 @@
     </script>
 </body>
 </html>
-
