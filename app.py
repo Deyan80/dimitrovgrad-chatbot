@@ -17,9 +17,9 @@ FAQ = {
     "председател": "Председател на Общинския съвет е Гергана Кръстева. Повече: https://www.dimitrovgrad.bg/bg/predsedatel-na-obshtinski-savet",
     "телефон": "Център за административно обслужване: 0391/68 214. Горещ телефон: 0391/68 222. Повече: https://www.dimitrovgrad.bg/bg/kontakti",
     "културна програма": "Актуалната културна програма е публикувана тук: https://www.dimitrovgrad.bg/bg/kultura",
-    "сесия": "Видеозаписи и дневен ред на сесиите на Общински съвет: https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet",
-    "бюджет 2025": "Информацията за бюджета на Община Димитровград за 2025 г. се намира в актовете и решенията на Общинския съвет. Търсете там PDF файлове и протоколи: https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet/. Ако не е актуализирано, проверете в програмите: https://www.dimitrovgrad.bg/bg/programi-1/.",
-    "решения на общинския съвет": "Всички решения на Общинския съвет, включително PDF файлове, протоколи и сесии: https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet/. Подстраници: Решения - https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet/resheniya-na-obs/, Протоколи - https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet/protokoli.",
+    "сесия": "Информация за сесиите на Общинския съвет: https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet/. Търсете видеозаписи и дневни редове там.",
+    "бюджет 2025": "Общинският съвет обсъжда отчета за бюджета на 6 месеца (чл.106 от Правилника). Вижте: https://www.dimitrovgrad.bg/bg/pravilnik-na-obshtinski-savet/. Актуални актове: https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet/. Ако не е налично, проверете в програмите: https://www.dimitrovgrad.bg/bg/programi-1/.",
+    "решения на общинския съвет": "Актове и решения на Общинския съвет: https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet/. За правилника: https://www.dimitrovgrad.bg/bg/pravilnik-na-obshtinski-savet/. Търсете PDF файлове и протоколи директно на сайта.",
 }
 
 def search_google(query):
