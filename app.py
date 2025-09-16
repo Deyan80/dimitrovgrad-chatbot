@@ -1,35 +1,36 @@
-from flask import Flask, request, jsonify, render_template
-import requests
 import os
-from datetime import datetime
+from flask import Flask, render_template, request, jsonify
+import requests
 import google.generativeai as genai
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Конфигурация
-API_KEY = os.getenv("GOOGLE_API_KEY")
-CX = os.getenv("GOOGLE_CX")
+# Вземаме ключовете от системните променливи
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# 🔍 Търсене в Google Custom Search
-def search_google(query):
-    base_url = "https://www.googleapis.com/customsearch/v1"
+# ----------------------------
+# Функция за търсене в Google CSE
+# ----------------------------
+def google_search(query):
+    url = "https://www.googleapis.com/customsearch/v1"
+    params = {
+        "q": query,
+        "cx": SEARCH_ENGINE_ID,
+        "key": GOOGLE_API_KEY,
+    }
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+        return data.get("items", [])
+    except Exception as e:
+        return []
 
-    # при специфични заявки – таргетираме поддиректории
-    if "бюджет" in query.lower():
-        query += " site:dimitrovgrad.bg/bg/bjudzhet"
-    elif "решение" in query.lower() or "сесия" in query.lower():
-        query += " site:dimitrovgrad.bg/bg/obshtinski-savet"
-    elif "видео" in query.lower():
-        query += " site:dimitrovgrad.bg/bg/obshtinski-savet/video"
-    else:
-        query += " site:dimitrovgrad.bg"
-
-    params = {"q": query, "key": API_KEY, "cx": CX}
-    resp = requests.get(base_url, params=params).json()
-    return resp.get("items", [])
-
-# 🧠 Генериране на AI отговор
+# ----------------------------
+# Генериране на отговор от AI
+# ----------------------------
 def generate_ai_response(query, search_results):
     if not GEMINI_API_KEY:
         return "❗ Липсва GEMINI_API_KEY за AI."
@@ -39,25 +40,35 @@ def generate_ai_response(query, search_results):
 
     current_date = datetime.now().strftime("%d.%m.%Y (%A), %H:%M ч.")
 
-    snippets = ""
+    if not search_results:
+        return f"ℹ️ Не намерих информация по темата „{query}“ на сайта на Община Димитровград."
+
+    # Форматираме резултатите като източници
+    sources = ""
     for item in search_results:
         link = item.get("link", "")
         title = item.get("title", "")
         snippet = item.get("snippet", "")
         if link.endswith(".pdf"):
-            snippets += f"- <a href='{link}' target='_blank'>{title}</a> ⬇️ <a href='{link}' target='_blank' class='download-btn'>Изтегли PDF</a>\n{snippet}\n"
+            sources += f"- {title}: {snippet}\n  <a href=\"{link}\" target=\"_blank\">Виж документа</a> | <a href=\"{link}\" target=\"_blank\">⬇️ Изтегли PDF</a>\n"
         else:
-            snippets += f"- <a href='{link}' target='_blank'>{title}</a>\n{snippet}\n"
+            sources += f"- {title}: {snippet}\n  <a href=\"{link}\" target=\"_blank\">Отвори</a>\n"
 
-    prompt = f"""Днес е {current_date}.
-Потребителят пита: '{query}'.
-Базирай се на информацията от сайта на Община Димитровград:
-{snippets}
+    prompt = f"""
+Ти си виртуален асистент за сайта на Община Димитровград.
+Днес е {current_date}.
+Потребителят пита: "{query}".
 
-Формирай отговор на български, приятелски и ясен 🙂.
-- Ако има точен отговор (например бюджет, решение), напиши го директно.
-- След това дай 1-2 активни линка към оригиналните документи/страници.
-Използвай HTML формат за линковете: <a href="URL" target="_blank">име</a>.
+Ето какво намерих в сайта на общината:
+{sources}
+
+❗ Много важно:
+- Никога не казвай, че "нямаш достъп до интернет" или че "не можеш да провериш".
+- Винаги използвай информацията от горните резултати, за да формулираш отговор.
+- Първо дай кратък и ясен отговор на български.
+- След това добави линк(ове) към оригиналните страници или документи.
+- Ако няма достатъчно информация, просто кажи: "Не намерих подробности в сайта, но ето най-близкото, което открих."
+- Използвай HTML формат за линковете: <a href="URL" target="_blank">име</a>.
 """
 
     try:
@@ -66,23 +77,29 @@ def generate_ai_response(query, search_results):
     except Exception as e:
         return f"⚠️ Грешка при AI обработка: {str(e)}"
 
+# ----------------------------
+# Рутове на Flask
+# ----------------------------
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/search", methods=["POST"])
-def search():
+@app.route("/ask", methods=["POST"])
+def ask():
     data = request.get_json()
     query = data.get("query", "")
-    if not query:
-        return jsonify({"error": "Няма подаден въпрос."})
 
-    search_results = search_google(query)
-    ai_answer = generate_ai_response(query, search_results)
+    # Търсим информация в Google
+    search_results = google_search(query)
 
-    return jsonify([{"snippet": ai_answer}])
+    # Генерираме отговор от AI
+    ai_response = generate_ai_response(query, search_results)
 
+    return jsonify({"answer": ai_response})
+
+# ----------------------------
+# Стартиране на приложението
+# ----------------------------
 if __name__ == "__main__":
     app.run(debug=True)
-
 
