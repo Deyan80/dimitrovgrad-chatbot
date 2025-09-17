@@ -44,6 +44,7 @@
         #inputForm {
             display: flex;
             border-top: 1px solid #ccc;
+            align-items: center;
         }
         #userInput {
             flex: 1;
@@ -53,13 +54,21 @@
             font-size: 16px;
         }
         #inputForm button {
-            padding: 15px 20px;
+            padding: 15px;
             border: none;
             background: #4CAF50;
             color: white;
             font-size: 16px;
-            border-radius: 0 0 10px 0;
             cursor: pointer;
+        }
+        #sendBtn {
+            border-radius: 0 0 10px 0;
+        }
+        #micBtn {
+            background: #1976D2;
+        }
+        #speakBtn {
+            background: #FF9800;
         }
         #inputForm button:disabled {
             background: #888;
@@ -102,7 +111,9 @@
         <div id="typing">Ботът пише...</div>
         <form id="inputForm">
             <input type="text" id="userInput" placeholder="Въведете въпрос..." autocomplete="off" required>
-            <button type="submit">Изпрати</button>
+            <button type="button" id="micBtn">🎤</button>
+            <button type="button" id="speakBtn">🔊</button>
+            <button type="submit" id="sendBtn">Изпрати</button>
         </form>
         <div id="faqButtons">
             <button>Кой е кметът на Димитровград?</button>
@@ -122,6 +133,10 @@
         const form = document.getElementById('inputForm');
         const input = document.getElementById('userInput');
         const faqButtons = document.querySelectorAll('#faqButtons button');
+        const micBtn = document.getElementById("micBtn");
+        const speakBtn = document.getElementById("speakBtn");
+
+        let lastBotReply = "";
 
         function linkify(text) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -134,6 +149,10 @@
             div.innerHTML = isHTML ? text : linkify(text);
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
+
+            if (sender === "bot") {
+                lastBotReply = text;
+            }
         }
 
         addMessage("👋 Здравей! Аз съм чатботът за Община Димитровград. Попитай ме нещо или използвай бутоните по-долу.", "bot", true);
@@ -181,6 +200,38 @@
                 sendQuery(btn.textContent);
             });
         });
+
+        // 🎤 Гласово въвеждане
+        let recognition;
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = "bg-BG";
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                input.value = transcript;
+                sendQuery(transcript);
+            };
+        }
+
+        micBtn.addEventListener("click", () => {
+            if (recognition) recognition.start();
+            else alert("Вашият браузър не поддържа гласово въвеждане.");
+        });
+
+        // 🔊 Четене на отговор
+        speakBtn.addEventListener("click", () => {
+            if (lastBotReply) {
+                const utterance = new SpeechSynthesisUtterance(lastBotReply);
+                utterance.lang = "bg-BG";
+                speechSynthesis.speak(utterance);
+            } else {
+                alert("Няма отговор за прочитане.");
+            }
+        });
     </script>
 </body>
 </html>
+
