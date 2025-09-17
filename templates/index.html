@@ -20,11 +20,24 @@
             display: flex;
             flex-direction: column;
             height: 80vh;
+            position: relative;
+        }
+        #langToggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #1976D2;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
         }
         #chat {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
+            margin-top: 40px; /* за да не се застъпва с бутона */
         }
         .message {
             margin: 10px 0;
@@ -56,20 +69,13 @@
         #inputForm button {
             padding: 15px;
             border: none;
-            background: #4CAF50;
             color: white;
             font-size: 16px;
             cursor: pointer;
         }
-        #sendBtn {
-            border-radius: 0 0 10px 0;
-        }
-        #micBtn {
-            background: #1976D2;
-        }
-        #speakBtn {
-            background: #FF9800;
-        }
+        #sendBtn { background: #4CAF50; border-radius: 0 0 10px 0; }
+        #micBtn { background: #1976D2; }
+        #speakBtn { background: #FF9800; }
         #inputForm button:disabled {
             background: #888;
             cursor: not-allowed;
@@ -107,6 +113,7 @@
 </head>
 <body>
     <div id="chatbox">
+        <button id="langToggle">EN</button>
         <div id="chat"></div>
         <div id="typing">Ботът пише...</div>
         <form id="inputForm">
@@ -115,16 +122,7 @@
             <button type="button" id="speakBtn">🔊</button>
             <button type="submit" id="sendBtn">Изпрати</button>
         </form>
-        <div id="faqButtons">
-            <button>Кой е кметът на Димитровград?</button>
-            <button>Кой е председател на Общинския съвет?</button>
-            <button>Работно време на общината</button>
-            <button>Телефон за връзка</button>
-            <button>Културна програма</button>
-            <button>Сесия на Общинския съвет</button>
-            <button>Бюджет на общината за 2025</button>
-            <button>Решения на Общинския съвет</button>
-        </div>
+        <div id="faqButtons"></div>
     </div>
 
     <script>
@@ -132,11 +130,46 @@
         const typing = document.getElementById('typing');
         const form = document.getElementById('inputForm');
         const input = document.getElementById('userInput');
-        const faqButtons = document.querySelectorAll('#faqButtons button');
         const micBtn = document.getElementById("micBtn");
         const speakBtn = document.getElementById("speakBtn");
+        const langToggle = document.getElementById("langToggle");
+        const faqButtonsContainer = document.getElementById("faqButtons");
 
         let lastBotReply = "";
+        let currentLang = "bg";
+
+        const faqData = {
+            bg: [
+                "Кой е кметът на Димитровград?",
+                "Кой е председател на Общинския съвет?",
+                "Работно време на общината",
+                "Телефон за връзка",
+                "Културна програма",
+                "Сесия на Общинския съвет",
+                "Бюджет на общината за 2025",
+                "Решения на Общинския съвет"
+            ],
+            en: [
+                "Who is the mayor of Dimitrovgrad?",
+                "Who is the chairman of the Municipal Council?",
+                "Municipality working hours",
+                "Contact phone number",
+                "Cultural program",
+                "Municipal Council session",
+                "Municipality budget 2025",
+                "Municipal Council decisions"
+            ]
+        };
+
+        function loadFaqButtons() {
+            faqButtonsContainer.innerHTML = "";
+            faqData[currentLang].forEach(text => {
+                const btn = document.createElement("button");
+                btn.textContent = text;
+                btn.addEventListener("click", () => sendQuery(text));
+                faqButtonsContainer.appendChild(btn);
+            });
+        }
 
         function linkify(text) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -150,12 +183,22 @@
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
 
-            if (sender === "bot") {
-                lastBotReply = text;
-            }
+            if (sender === "bot") lastBotReply = text;
         }
 
-        addMessage("👋 Здравей! Аз съм чатботът за Община Димитровград. Попитай ме нещо или използвай бутоните по-долу.", "bot", true);
+        function showGreeting() {
+            if (currentLang === "bg") {
+                addMessage("👋 Здравей! Аз съм чатботът за Община Димитровград. Попитай ме нещо или използвай бутоните по-долу.", "bot", true);
+                typing.textContent = "Ботът пише...";
+                input.placeholder = "Въведете въпрос...";
+                document.getElementById("sendBtn").textContent = "Изпрати";
+            } else {
+                addMessage("👋 Hello! I am the Dimitrovgrad Municipality chatbot. Ask me something or use the buttons below.", "bot", true);
+                typing.textContent = "Bot is typing...";
+                input.placeholder = "Type your question...";
+                document.getElementById("sendBtn").textContent = "Send";
+            }
+        }
 
         async function sendQuery(query) {
             addMessage(query, "user");
@@ -166,23 +209,21 @@
                 const response = await fetch("/search", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({query})
+                    body: JSON.stringify({query, lang: currentLang})
                 });
                 const data = await response.json();
                 typing.style.display = "none";
                 form.querySelector("button[type=submit]").disabled = false;
 
                 if (data.error) {
-                    addMessage("⚠️ Възникна грешка: " + data.error, "bot");
+                    addMessage("⚠️ " + (currentLang === "bg" ? "Възникна грешка: " : "Error: ") + data.error, "bot");
                 } else {
-                    data.forEach(item => {
-                        addMessage(item.snippet, "bot", true);
-                    });
+                    data.forEach(item => addMessage(item.snippet, "bot", true));
                 }
             } catch (err) {
                 typing.style.display = "none";
                 form.querySelector("button[type=submit]").disabled = false;
-                addMessage("⚠️ Проблем с връзката: " + err.message, "bot");
+                addMessage("⚠️ " + (currentLang === "bg" ? "Проблем с връзката: " : "Connection error: ") + err.message, "bot");
             }
         }
 
@@ -193,12 +234,6 @@
                 sendQuery(text);
                 input.value = "";
             }
-        });
-
-        faqButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                sendQuery(btn.textContent);
-            });
         });
 
         // 🎤 Гласово въвеждане
@@ -217,21 +252,36 @@
         }
 
         micBtn.addEventListener("click", () => {
-            if (recognition) recognition.start();
-            else alert("Вашият браузър не поддържа гласово въвеждане.");
+            if (recognition) {
+                recognition.lang = currentLang === "bg" ? "bg-BG" : "en-US";
+                recognition.start();
+            } else {
+                alert(currentLang === "bg" ? "Вашият браузър не поддържа гласово въвеждане." : "Your browser does not support voice input.");
+            }
         });
 
         // 🔊 Четене на отговор
         speakBtn.addEventListener("click", () => {
             if (lastBotReply) {
                 const utterance = new SpeechSynthesisUtterance(lastBotReply);
-                utterance.lang = "bg-BG";
+                utterance.lang = currentLang === "bg" ? "bg-BG" : "en-US";
                 speechSynthesis.speak(utterance);
             } else {
-                alert("Няма отговор за прочитане.");
+                alert(currentLang === "bg" ? "Няма отговор за прочитане." : "No reply to read.");
             }
         });
+
+        // 🌐 Превключване на езика
+        langToggle.addEventListener("click", () => {
+            currentLang = currentLang === "bg" ? "en" : "bg";
+            langToggle.textContent = currentLang === "bg" ? "EN" : "BG";
+            loadFaqButtons();
+            showGreeting();
+        });
+
+        // стартираме с български
+        loadFaqButtons();
+        showGreeting();
     </script>
 </body>
 </html>
-
